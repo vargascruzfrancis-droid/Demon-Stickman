@@ -1,2 +1,2 @@
 # Demon-Stickman
-juego shoter de disparo al estilo stickman
+juego shooter de disparo al estilo stickman
