@@ -8,16 +8,12 @@ He eliminado el desplazamiento lateral del canvas para que el tamaño de pantall
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Stickman Shooter - Minigun y Armas Realistas</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-  body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; font-family: 'Courier New', monospace; touch-action: none; }
   canvas {
-  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
   height: 100vh;
-  object-fit: contain;
-  background: #000;
-  cursor: crosshair;
-  transform: translateX(-50px); /* ← desplazamiento a la izquierda */
 }
   .touch-panel { position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; gap: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border-top: 1px solid #aa44ff; z-index: 200; }
   .touch-panel.hidden { display: none; }
