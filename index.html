@@ -1,5 +1,3 @@
-He eliminado el desplazamiento lateral del canvas para que el tamaño de pantalla quede exactamente como en el código original que me entregaste. Además, rediseñé completamente la escopeta para que se distinga claramente de la SCAR: ahora tiene un aspecto de **bomba de corredera** (pump-action), con cañón más corto, culata de madera grande, un cargador tubular bajo el cañón y un pomo delantero característico. Los colores y proporciones son únicos (tonos marrones y metálicos). El resto de las mejoras (minigun, disparo automático, skins ninja, tormentas, etc.) se mantienen intactas.
-
 ```html
 <!DOCTYPE html>
 <html lang="es">
@@ -8,13 +6,105 @@ He eliminado el desplazamiento lateral del canvas para que el tamaño de pantall
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Stickman Shooter - Minigun y Armas Realistas</title>
 <style>
-  canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+  body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; font-family: 'Courier New', monospace; touch-action: none; }
+  canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: block; background: #000; cursor: crosshair; }
+  
+  /* Pantalla de inicio estilo juego real */
+  .start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #0a0a2a, #000000);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    font-family: 'Courier New', monospace;
+    transition: opacity 0.5s ease;
+  }
+  .start-screen.hidden {
+    display: none;
+  }
+  .game-title {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #ffaa44;
+    text-shadow: 0 0 20px #ff6600, 0 0 40px #ff4400;
+    margin-bottom: 2rem;
+    letter-spacing: 4px;
+    animation: pulse 1.5s infinite;
+  }
+  .game-subtitle {
+    font-size: 1.2rem;
+    color: #88aaff;
+    margin-bottom: 3rem;
+    text-shadow: 0 0 10px #44aaff;
+  }
+  .play-btn {
+    background: linear-gradient(45deg, #aa44ff, #5500aa);
+    border: none;
+    border-radius: 60px;
+    padding: 18px 48px;
+    font-size: 2rem;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(170,68,255,0.8);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 2rem;
+  }
+  .play-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 50px rgba(170,68,255,1);
+  }
+  .play-btn:active {
+    transform: scale(0.98);
+  }
+  .controls-info {
+    background: rgba(0,0,0,0.6);
+    padding: 15px 25px;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    color: #ccc;
+    text-align: center;
+    border: 1px solid #aa44ff;
+  }
+  @keyframes pulse {
+    0% { text-shadow: 0 0 20px #ff6600, 0 0 40px #ff4400; }
+    50% { text-shadow: 0 0 35px #ffaa00, 0 0 60px #ff6600; }
+    100% { text-shadow: 0 0 20px #ff6600, 0 0 40px #ff4400; }
+  }
+  @media (max-width: 768px) {
+    .game-title { font-size: 2.5rem; }
+    .play-btn { padding: 12px 32px; font-size: 1.5rem; }
+    .controls-info { font-size: 0.7rem; }
+  }
+  
+  /* Indicador de guardado */
+  .save-indicator {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    color: #ffcc00;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-family: monospace;
+    pointer-events: none;
+    z-index: 250;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .save-indicator.show {
+    opacity: 1;
+  }
+  
   .touch-panel { position: fixed; bottom: 20px; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; gap: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border-top: 1px solid #aa44ff; z-index: 200; }
   .touch-panel.hidden { display: none; }
   .touch-btn { background: rgba(30,30,60,0.9); border: 2px solid #aa44ff; border-radius: 50px; padding: 10px 16px; font-size: 20px; font-weight: bold; text-align: center; color: white; cursor: pointer; min-width: 70px; touch-action: manipulation; }
@@ -49,6 +139,21 @@ He eliminado el desplazamiento lateral del canvas para que el tamaño de pantall
 </head>
 <body>
 <canvas id="c"></canvas>
+
+<!-- Pantalla de inicio -->
+<div id="startScreen" class="start-screen">
+  <div class="game-title">STICKMAN SHOOTER</div>
+  <div class="game-subtitle">⚡ Acción sin límites ⚡</div>
+  <button id="playButton" class="play-btn">▶ PLAY</button>
+  <div class="controls-info">
+    🖱️ CLICK: Disparo automático | A/D: Mover | SPACE: Saltar | G: Recargar<br>
+    M: Tienda | O: Ajustes | 💾 Guardado automático cada 5 segundos
+  </div>
+</div>
+
+<!-- Indicador de guardado -->
+<div id="saveIndicator" class="save-indicator">💾 Partida guardada</div>
+
 <div id="touchPanel" class="touch-panel hidden">
   <div class="movement-group"><div class="touch-btn" id="btnLeft">◀ A</div><div class="touch-btn" id="btnRight">D ▶</div></div>
   <div class="touch-btn" id="btnJump">SALTAR</div>
@@ -81,7 +186,10 @@ if(isMobile) document.getElementById('touchPanel').classList.remove('hidden');
 const canvas=document.getElementById('c'), ctx=canvas.getContext('2d');
 canvas.width=900; canvas.height=450;
 
-// ── SETTINGS (sin cambios) ─────────────────────────────────────────
+// ── VARIABLE DE INICIO ────────────────────────────────────────────────
+let gameStarted = false;  // El juego comienza cuando se pulsa PLAY
+
+// ── SETTINGS ──────────────────────────────────────────────────────────
 let settings={sfxVolume:100,musicVolume:100,quality:'high',musicEnabled:false,maxFps:60};
 function loadSettings(){const s=localStorage.getItem('stickmanSettings');if(s)try{Object.assign(settings,JSON.parse(s));}catch(e){}document.getElementById('sfxVolumeSlider').value=settings.sfxVolume;document.getElementById('sfxVolumeValue').innerText=settings.sfxVolume;document.getElementById('musicVolumeSlider').value=settings.musicVolume;document.getElementById('musicVolumeValue').innerText=settings.musicVolume;updateQualityButtons(settings.quality);updateFpsButtons(settings.maxFps);updateMusicBtnText();window.currentQuality=settings.quality;updateMasterGain();}
 function saveSettings(){localStorage.setItem('stickmanSettings',JSON.stringify(settings));updateMasterGain();}
@@ -226,14 +334,46 @@ function spark(x,y,col,n=8,spd=4){let fn=window.currentQuality==='low'?Math.floo
 function floatText(x,y,txt,col='#fff'){floatTexts.push({x,y,txt,col,life:1,vy:-1.8});}
 function addCoins(a){totalCoins+=a;saveGame();floatText(player.x+15,player.y-25,`+${a}🪙`,'#ffcc00');SFX.coin();}
 
+// ── GUARDADO AUTOMÁTICO CON INDICADOR ─────────────────────────────────
+let lastAutoSaveFrame = 0;
+const AUTO_SAVE_INTERVAL_FRAMES = 300; // cada 300 frames (~5 segundos a 60fps)
+function showSaveIndicator() {
+  const indicator = document.getElementById('saveIndicator');
+  indicator.classList.add('show');
+  setTimeout(() => {
+    indicator.classList.remove('show');
+  }, 800);
+}
+// Sobrescribir saveGame para que muestre indicador
+const originalSaveGame = saveGame;
+window.saveGame = function() {
+  originalSaveGame();
+  showSaveIndicator();
+}.bind(this);
+saveGame = window.saveGame;
+
 // ── UPDATE ────────────────────────────────────────────────────────────
 function update(ct){
   requestAnimationFrame(update);
   if(frameInterval>0&&ct-lastUpdateTime<frameInterval)return;
   lastUpdateTime=ct;
+  
+  // Si el juego no ha comenzado, solo dibujar la pantalla de inicio y salir
+  if(!gameStarted){
+    drawStartScreen();
+    return;
+  }
+  
   if(gamePaused){draw();return;}
   if(shootingHeld && !gamePaused && gameState==='playing' && player.alive) handleShoot();
   frameN++;
+  
+  // Guardado automático cada cierto tiempo
+  if(frameN - lastAutoSaveFrame >= AUTO_SAVE_INTERVAL_FRAMES) {
+    saveGame();
+    lastAutoSaveFrame = frameN;
+  }
+  
   if(gameState==='gameover'){draw();return;}
   if(gameState==='waveclear'){waveClearTimer--;if(waveClearTimer<=0){wave++;spawnWave(wave);SFX.wave();gameState='playing';}updateCamera();draw();return;}
 
@@ -268,7 +408,7 @@ function update(ct){
 }
 function updateCamera(){let t=player.x-canvas.width/2+CAMERA_OFFSET;cameraX+=(t-cameraX)*0.1;}
 
-// ── DIBUJO DE ARMAS REALISTAS (con nueva escopeta) ────────────────────
+// ── DIBUJO DE ARMAS REALISTAS (igual que antes) ───────────────────────
 function drawWeapon(ctx, wpId, muzzleFlash){
   if(wpId === 'pistol'){
     ctx.fillStyle='#3a3a44'; ctx.fillRect(0,-4,18,8);
@@ -285,27 +425,14 @@ function drawWeapon(ctx, wpId, muzzleFlash){
     ctx.fillStyle='#666'; ctx.fillRect(5,-8,14,2);
     ctx.strokeStyle='#888'; ctx.strokeRect(0,-6,26,11);
   } else if(wpId === 'shotgun'){
-    // Diseño nuevo: escopeta de corredera (pump-action)
-    ctx.fillStyle='#8B5A2B'; // culata de madera
-    ctx.fillRect(-8,-5,12,9); // culata
-    ctx.fillStyle='#4a4a55'; // cuerpo metálico
-    ctx.fillRect(0,-7,32,13); // receptor
-    ctx.fillStyle='#666'; // cañón
-    ctx.fillRect(32,-3,14,6);
-    // Cargador tubular bajo el cañón
-    ctx.fillStyle='#555';
-    ctx.fillRect(8,5,28,4);
-    // Bomba delantera (pump)
-    ctx.fillStyle='#2a2a33';
-    ctx.fillRect(20,2,12,4);
-    // Elevación delantera
-    ctx.fillStyle='#888';
-    ctx.fillRect(40,-4,6,2);
-    // Detalles
-    ctx.fillStyle='#333';
-    ctx.fillRect(12,7,6,3);
-    ctx.strokeStyle='#aaa';
-    ctx.strokeRect(0,-7,32,13);
+    ctx.fillStyle='#8B5A2B'; ctx.fillRect(-8,-5,12,9);
+    ctx.fillStyle='#4a4a55'; ctx.fillRect(0,-7,32,13);
+    ctx.fillStyle='#666'; ctx.fillRect(32,-3,14,6);
+    ctx.fillStyle='#555'; ctx.fillRect(8,5,28,4);
+    ctx.fillStyle='#2a2a33'; ctx.fillRect(20,2,12,4);
+    ctx.fillStyle='#888'; ctx.fillRect(40,-4,6,2);
+    ctx.fillStyle='#333'; ctx.fillRect(12,7,6,3);
+    ctx.strokeStyle='#aaa'; ctx.strokeRect(0,-7,32,13);
   } else if(wpId === 'laser'){
     ctx.fillStyle='#44ffaa'; ctx.fillRect(0,-4,28,8);
     ctx.fillStyle='#22cc88'; ctx.fillRect(28,-3,18,6);
@@ -333,7 +460,6 @@ function drawWeapon(ctx, wpId, muzzleFlash){
   }
 }
 
-// ── DIBUJO DEL STICKMAN (con armas mejoradas) ─────────────────────────
 function drawStick(worldX,worldY,col,facing,walkF,hitT,sc,showGun,weaponId,isPlayer,skinId){
   ctx.save();
   ctx.translate(worldX-cameraX+15*sc,worldY+60*sc);
@@ -406,7 +532,7 @@ function drawStick(worldX,worldY,col,facing,walkF,hitT,sc,showGun,weaponId,isPla
 
 function drawHPBar(wx,wy,hp,max,width){let sx=wx-cameraX;ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(sx,wy,width,5);let pct=hp/max;ctx.fillStyle=pct>0.5?'#00ff66':pct>0.25?'#ffaa00':'#ff2200';ctx.fillRect(sx,wy,width*pct,5);ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.strokeRect(sx,wy,width,5);}
 
-// ── DRAW ──────────────────────────────────────────────────────────────
+// ── DRAW (juego normal) ──────────────────────────────────────────────
 function draw(){
   ctx.save();
   let sx=screenShake>0?(Math.random()-.5)*screenShake:0,sy=screenShake>0?(Math.random()-.5)*screenShake:0;
@@ -428,6 +554,7 @@ function draw(){
   if(gameState==='gameover')drawGameOver();
   if(gameState==='waveclear')drawWaveClear();
 }
+
 function drawHUD(){
   ctx.fillStyle='rgba(0,0,0,0.65)';ctx.fillRect(10,10,206,22);let hp=player.health/player.maxHealth;ctx.fillStyle=hp>0.5?'#00ff66':hp>0.25?'#ffaa00':'#ff2200';ctx.fillRect(12,12,202*hp,18);ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.strokeRect(10,10,206,22);ctx.fillStyle='#fff';ctx.font='bold 11px Courier New';ctx.textAlign='left';ctx.fillText(`HP  ${player.health} / ${player.maxHealth}`,15,25);
   ctx.shadowColor='#ffff00';ctx.shadowBlur=12;ctx.fillStyle='#ffff00';ctx.font='bold 20px Courier New';ctx.textAlign='center';ctx.fillText(`${score}`,canvas.width/2,26);ctx.shadowBlur=0;
@@ -441,11 +568,44 @@ function drawHUD(){
   if(stormActive){ctx.fillStyle='#88ccff';ctx.font='bold 12px Courier New';ctx.fillText('🌧️ STORM',canvas.width-12,96);}
   ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='10px Courier New';ctx.textAlign='center';ctx.fillText('A/D: Mover | SPACE: Saltar | CLICK: Disparo automático | G: Recargar | M: Tienda | O: Ajustes',canvas.width/2,canvas.height-8);
 }
+
 function drawGameOver(){ctx.fillStyle='rgba(0,0,0,0.78)';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.shadowColor='#ff2200';ctx.shadowBlur=35;ctx.fillStyle='#ff2200';ctx.font='bold 56px Courier New';ctx.textAlign='center';ctx.fillText('GAME OVER',canvas.width/2,canvas.height/2-30);ctx.shadowBlur=0;ctx.fillStyle='#ffff00';ctx.font='bold 22px Courier New';ctx.fillText(`SCORE: ${score}  •  WAVE: ${wave}`,canvas.width/2,canvas.height/2+18);ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='13px Courier New';ctx.fillText('Presiona  R  o  ENTER  para reiniciar',canvas.width/2,canvas.height/2+58);}
 function drawWaveClear(){let a=Math.min(1,(180-waveClearTimer)/20);ctx.fillStyle=`rgba(0,0,0,${a*0.5})`;ctx.fillRect(0,0,canvas.width,canvas.height);ctx.globalAlpha=a;ctx.shadowColor='#ffff00';ctx.shadowBlur=25;ctx.fillStyle='#ffff00';ctx.font='bold 44px Courier New';ctx.textAlign='center';ctx.fillText(`WAVE ${wave} COMPLETE!`,canvas.width/2,canvas.height/2-20);ctx.shadowBlur=0;ctx.fillStyle='#00ff88';ctx.font='bold 18px Courier New';ctx.fillText(`Próxima oleada: WAVE ${wave+1}`,canvas.width/2,canvas.height/2+24);ctx.globalAlpha=1;}
 
+// ── PANTALLA DE INICIO ───────────────────────────────────────────────
+function drawStartScreen(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#000000';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.font='bold 36px "Courier New"';
+  ctx.fillStyle='#ffaa44';
+  ctx.shadowColor='#ff6600';
+  ctx.shadowBlur=15;
+  ctx.textAlign='center';
+  ctx.fillText('STICKMAN SHOOTER', canvas.width/2, canvas.height/2 - 50);
+  ctx.font='24px monospace';
+  ctx.fillStyle='#88aaff';
+  ctx.fillText('⚡ PRESIONA PLAY PARA COMENZAR ⚡', canvas.width/2, canvas.height/2 + 30);
+  ctx.font='16px monospace';
+  ctx.fillStyle='#ccc';
+  ctx.fillText('A/D: Mover | SPACE: Saltar | CLICK: Disparar | G: Recargar', canvas.width/2, canvas.height/2 + 100);
+  ctx.shadowBlur=0;
+}
+
+// ── EVENTO DEL BOTÓN PLAY ────────────────────────────────────────────
+document.getElementById('playButton').addEventListener('click', () => {
+  gameStarted = true;
+  document.getElementById('startScreen').style.display = 'none';
+  // Si la música está activada, la iniciamos (ya se habrá iniciado con la primera interacción)
+  if(settings.musicEnabled && musicContext && musicContext.state !== 'running') {
+    startMusic();
+  }
+});
+
 // ── INICIO ────────────────────────────────────────────────────────────
-loadSettings();loadSave();updateGunStats();resetGame();requestAnimationFrame(update);
+loadSettings();loadSave();updateGunStats();resetGame();
+// No llamamos a requestAnimationFrame hasta después de que se muestre la pantalla de inicio
+requestAnimationFrame(update);
 function firstInteraction(){if(settings.musicEnabled)startMusic();initSfx();document.removeEventListener('click',firstInteraction);document.removeEventListener('keydown',firstInteraction);}
 document.addEventListener('click',firstInteraction);
 document.addEventListener('keydown',firstInteraction);
